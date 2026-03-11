@@ -1,0 +1,395 @@
+{
+  "trade_date": "2026-03-10",
+  "market": {
+    "regime": "NEUTRAL"
+  },
+  "account": {
+    "cash": 120000,
+    "total_equity": 320000,
+    "prev_total_equity": 318600,
+    "initial_equity": 300000,
+    "portfolio_drawdown_pct": 0.054
+  },
+  "positions": [
+    {
+      "symbol": "600519.SH",
+      "name": "贵州茅台",
+      "sector": "Consumer",
+      "quantity": 100,
+      "avg_cost": 1580.0,
+      "prev_close": 1635.0,
+      "last_price": 1642.0,
+      "list_days": 8000,
+      "suspended": false,
+      "last_trade_date": "2026-03-04",
+      "exchange": "SSE",
+      "board": "MAIN",
+      "is_st": false,
+      "upper_limit": 1798.5,
+      "lower_limit": 1471.5,
+      "available_quantity": 100.0,
+      "northbound_net_flow": 0
+    },
+    {
+      "symbol": "300750.SZ",
+      "name": "宁德时代",
+      "sector": "Battery",
+      "quantity": 200,
+      "avg_cost": 252.0,
+      "prev_close": 249.0,
+      "last_price": 246.0,
+      "turnover_rate": 0.028,
+      "relative_volume": 1.12,
+      "amount": 4200000000,
+      "list_days": 2100,
+      "suspended": false,
+      "last_trade_date": "2026-03-07",
+      "exchange": "SZSE",
+      "board": "CHINEXT",
+      "is_st": false,
+      "upper_limit": 298.8,
+      "lower_limit": 199.2,
+      "available_quantity": 200.0,
+      "northbound_net_flow": 0
+    },
+    {
+      "symbol": "601318.SH",
+      "name": "中国平安",
+      "sector": "Financials",
+      "quantity": 600,
+      "avg_cost": 50.8,
+      "prev_close": 52.1,
+      "last_price": 52.6,
+      "turnover_rate": 0.019,
+      "relative_volume": 1.08,
+      "amount": 3650000000,
+      "list_days": 6400,
+      "suspended": false,
+      "last_trade_date": "2026-03-06",
+      "northbound_net_flow": 185000000,
+      "exchange": "SSE",
+      "board": "MAIN",
+      "is_st": false,
+      "upper_limit": 57.31,
+      "lower_limit": 46.89,
+      "available_quantity": 600.0
+    }
+  ],
+  "watchlist": [
+    {
+      "symbol": "601899.SH",
+      "name": "紫金矿业",
+      "sector": "Metals",
+      "prev_close": 17.95,
+      "last_price": 18.42,
+      "momentum_score": 0.82,
+      "breakout_score": 0.79,
+      "liquidity_score": 0.86,
+      "turnover_rate": 0.041,
+      "relative_volume": 1.68,
+      "amount": 8600000000,
+      "list_days": 6000,
+      "suspended": false,
+      "exchange": "SSE",
+      "board": "MAIN",
+      "is_st": false,
+      "upper_limit": 19.74,
+      "lower_limit": 16.16,
+      "northbound_net_flow": 0
+    },
+    {
+      "symbol": "002371.SZ",
+      "name": "北方华创",
+      "sector": "Semis",
+      "prev_close": 421.0,
+      "last_price": 428.0,
+      "momentum_score": 0.8,
+      "breakout_score": 0.77,
+      "liquidity_score": 0.84,
+      "turnover_rate": 0.038,
+      "relative_volume": 1.45,
+      "amount": 4200000000,
+      "list_days": 3200,
+      "suspended": false,
+      "exchange": "SZSE",
+      "board": "MAIN",
+      "is_st": false,
+      "upper_limit": 463.1,
+      "lower_limit": 378.9,
+      "northbound_net_flow": 0
+    },
+    {
+      "symbol": "300308.SZ",
+      "name": "中际旭创",
+      "sector": "Optics",
+      "prev_close": 155.0,
+      "last_price": 158.4,
+      "momentum_score": 0.78,
+      "breakout_score": 0.74,
+      "liquidity_score": 0.83,
+      "turnover_rate": 0.056,
+      "relative_volume": 1.72,
+      "amount": 6800000000,
+      "list_days": 2500,
+      "suspended": false,
+      "exchange": "SZSE",
+      "board": "CHINEXT",
+      "is_st": false,
+      "upper_limit": 186.0,
+      "lower_limit": 124.0,
+      "northbound_net_flow": 0
+    },
+    {
+      "symbol": "000858.SZ",
+      "name": "五粮液",
+      "sector": "Consumer",
+      "prev_close": 136.0,
+      "last_price": 138.6,
+      "momentum_score": 0.74,
+      "breakout_score": 0.7,
+      "liquidity_score": 0.88,
+      "turnover_rate": 0.024,
+      "relative_volume": 1.18,
+      "amount": 3900000000,
+      "list_days": 7600,
+      "suspended": false,
+      "exchange": "SZSE",
+      "board": "MAIN",
+      "is_st": false,
+      "upper_limit": 149.6,
+      "lower_limit": 122.4,
+      "northbound_net_flow": 0
+    },
+    {
+      "symbol": "688111.SH",
+      "name": "金山办公",
+      "sector": "Software",
+      "prev_close": 282.5,
+      "last_price": 288.0,
+      "momentum_score": 0.76,
+      "breakout_score": 0.73,
+      "liquidity_score": 0.78,
+      "turnover_rate": 0.031,
+      "relative_volume": 1.37,
+      "amount": 2100000000,
+      "list_days": 1200,
+      "suspended": false,
+      "exchange": "SSE",
+      "board": "STAR",
+      "is_st": false,
+      "upper_limit": 339.0,
+      "lower_limit": 226.0,
+      "northbound_net_flow": 0
+    },
+    {
+      "symbol": "600036.SH",
+      "name": "招商银行",
+      "sector": "Financials",
+      "prev_close": 35.2,
+      "last_price": 35.8,
+      "momentum_score": 0.69,
+      "breakout_score": 0.64,
+      "liquidity_score": 0.9,
+      "turnover_rate": 0.016,
+      "relative_volume": 1.05,
+      "amount": 2700000000,
+      "list_days": 8200,
+      "suspended": false,
+      "exchange": "SSE",
+      "board": "MAIN",
+      "is_st": false,
+      "upper_limit": 38.72,
+      "lower_limit": 31.68,
+      "northbound_net_flow": 0
+    },
+    {
+      "symbol": "002594.SZ",
+      "name": "比亚迪",
+      "sector": "Auto",
+      "prev_close": 318.0,
+      "last_price": 324.8,
+      "momentum_score": 0.79,
+      "breakout_score": 0.76,
+      "liquidity_score": 0.85,
+      "turnover_rate": 0.029,
+      "relative_volume": 1.26,
+      "amount": 5150000000,
+      "list_days": 5200,
+      "suspended": false,
+      "northbound_net_flow": 142000000,
+      "exchange": "SZSE",
+      "board": "MAIN",
+      "is_st": false,
+      "upper_limit": 349.8,
+      "lower_limit": 286.2
+    },
+    {
+      "symbol": "603259.SH",
+      "name": "药明康德",
+      "sector": "Healthcare",
+      "prev_close": 46.8,
+      "last_price": 47.9,
+      "momentum_score": 0.72,
+      "breakout_score": 0.68,
+      "liquidity_score": 0.82,
+      "turnover_rate": 0.021,
+      "relative_volume": 1.11,
+      "amount": 2480000000,
+      "list_days": 2800,
+      "suspended": false,
+      "northbound_net_flow": 96000000,
+      "exchange": "SSE",
+      "board": "MAIN",
+      "is_st": false,
+      "upper_limit": 51.48,
+      "lower_limit": 42.12
+    }
+  ],
+  "recent_events": [
+    {
+      "symbol": "601899.SH",
+      "event_score": 0.76,
+      "sentiment": "positive",
+      "headline": "金铜价格维持高位，矿山产量兑现预期"
+    },
+    {
+      "symbol": "002371.SZ",
+      "event_score": 0.79,
+      "sentiment": "positive",
+      "headline": "半导体设备招标延续，国产替代订单保持景气"
+    },
+    {
+      "symbol": "300308.SZ",
+      "event_score": 0.74,
+      "sentiment": "positive",
+      "headline": "800G 光模块需求持续，海外算力订单验证加速"
+    },
+    {
+      "symbol": "000858.SZ",
+      "event_score": 0.58,
+      "sentiment": "neutral",
+      "headline": "渠道库存去化平稳，春节后动销延续修复"
+    },
+    {
+      "symbol": "688111.SH",
+      "event_score": 0.66,
+      "sentiment": "positive",
+      "headline": "办公软件订阅收入稳步增长，AI 功能渗透继续提升"
+    },
+    {
+      "symbol": "600036.SH",
+      "event_score": 0.54,
+      "sentiment": "neutral",
+      "headline": "零售存款稳健增长，息差压力边际可控"
+    },
+    {
+      "symbol": "600519.SH",
+      "event_score": 0.61,
+      "sentiment": "neutral",
+      "headline": "高端白酒批价维持平稳，渠道反馈需求韧性仍在"
+    },
+    {
+      "symbol": "300750.SZ",
+      "event_score": 0.46,
+      "sentiment": "negative",
+      "headline": "动力电池价格竞争延续，短期盈利修复节奏偏慢"
+    },
+    {
+      "symbol": "601318.SH",
+      "event_score": 0.57,
+      "sentiment": "neutral",
+      "headline": "寿险新单延续修复，综合金融协同带动价值增长"
+    },
+    {
+      "symbol": "002594.SZ",
+      "event_score": 0.73,
+      "sentiment": "positive",
+      "headline": "高端车型订单稳步释放，海外销量继续增长"
+    },
+    {
+      "symbol": "603259.SH",
+      "event_score": 0.64,
+      "sentiment": "positive",
+      "headline": "海外订单恢复改善，临床前业务景气度回升"
+    }
+  ],
+  "fundamentals": [
+    {
+      "symbol": "601899.SH",
+      "sector": "Metals",
+      "growth_score": 0.72,
+      "quality_score": 0.75,
+      "valuation_score": 0.67
+    },
+    {
+      "symbol": "002371.SZ",
+      "sector": "Semis",
+      "growth_score": 0.78,
+      "quality_score": 0.81,
+      "valuation_score": 0.52
+    },
+    {
+      "symbol": "300308.SZ",
+      "sector": "Optics",
+      "growth_score": 0.8,
+      "quality_score": 0.73,
+      "valuation_score": 0.48
+    },
+    {
+      "symbol": "000858.SZ",
+      "sector": "Consumer",
+      "growth_score": 0.59,
+      "quality_score": 0.86,
+      "valuation_score": 0.55
+    },
+    {
+      "symbol": "688111.SH",
+      "sector": "Software",
+      "growth_score": 0.71,
+      "quality_score": 0.82,
+      "valuation_score": 0.5
+    },
+    {
+      "symbol": "600036.SH",
+      "sector": "Financials",
+      "growth_score": 0.55,
+      "quality_score": 0.76,
+      "valuation_score": 0.74
+    },
+    {
+      "symbol": "600519.SH",
+      "sector": "Consumer",
+      "growth_score": 0.6,
+      "quality_score": 0.89,
+      "valuation_score": 0.44
+    },
+    {
+      "symbol": "300750.SZ",
+      "sector": "Battery",
+      "growth_score": 0.67,
+      "quality_score": 0.78,
+      "valuation_score": 0.39
+    },
+    {
+      "symbol": "601318.SH",
+      "sector": "Financials",
+      "growth_score": 0.58,
+      "quality_score": 0.8,
+      "valuation_score": 0.78
+    },
+    {
+      "symbol": "002594.SZ",
+      "sector": "Auto",
+      "growth_score": 0.82,
+      "quality_score": 0.79,
+      "valuation_score": 0.46
+    },
+    {
+      "symbol": "603259.SH",
+      "sector": "Healthcare",
+      "growth_score": 0.63,
+      "quality_score": 0.77,
+      "valuation_score": 0.62
+    }
+  ]
+}
