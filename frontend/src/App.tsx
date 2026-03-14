@@ -126,6 +126,37 @@ interface CalendarPanelProps {
   disabled?: boolean;
 }
 
+interface QuickDateNavigatorProps {
+  rows: NavRow[];
+  selectedDate: string;
+  prevDate: string;
+  nextDate: string;
+  disabled?: boolean;
+  onSelectDate: (date: string) => void;
+  onShiftDate: (offset: -1 | 1) => void;
+}
+
+interface InsightItem {
+  label: string;
+  value: ReactNode;
+  toneClassName?: string;
+}
+
+interface InsightListProps {
+  items: InsightItem[];
+  className?: string;
+}
+
+interface CollapsibleSectionProps {
+  eyebrow?: string;
+  title: string;
+  chip?: ReactNode;
+  summaryText?: string;
+  className?: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}
+
 interface CalendarCell {
   date: string;
   day: number;
@@ -184,7 +215,7 @@ const PIPELINE_STAGES: StageDefinition[] = [
 
 const TAB_ITEMS: TabDefinition[] = [
   { id: "overview", label: "总览" },
-  { id: "calendar", label: "日历" },
+  { id: "calendar", label: "日历复盘" },
   { id: "positions", label: "持仓" },
   { id: "plans", label: "计划" },
   { id: "fills", label: "成交" },
@@ -451,6 +482,31 @@ export default function App() {
     return { rejectedCount, totalAmount };
   }, [dataState.fills]);
 
+  const planBlockedCount = useMemo(() => {
+    return dataState.plans.filter((row) => ["REJECTED", "FAILED", "BLOCKED"].includes(row.status || "")).length;
+  }, [dataState.plans]);
+
+  const totalFillFee = useMemo(() => {
+    return dataState.fills.reduce((sum, row) => {
+      const fee = toNumber(row.total_fee);
+      return Number.isFinite(fee) ? sum + fee : sum;
+    }, 0);
+  }, [dataState.fills]);
+
+  const avgFillDeviationBps = useMemo(() => {
+    const values = dataState.fills
+      .map((row) => toNumber(row.price_deviation_bps))
+      .filter((value) => Number.isFinite(value));
+    if (!values.length) {
+      return Number.NaN;
+    }
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+  }, [dataState.fills]);
+
+  const recentNavRows = useMemo(() => {
+    return [...sortedNavRows].slice(-10).reverse();
+  }, [sortedNavRows]);
+
   const stageCoverage = useMemo(() => {
     return extractStageNotes(reportMarkdown).size;
   }, [reportMarkdown]);
@@ -598,6 +654,157 @@ export default function App() {
     {
       label: "阶段注记",
       value: String(stageCoverage),
+    },
+  ];
+
+  const overviewConclusion = useMemo(() => {
+    const headline =
+      marketSnapshot.className === "trend-up"
+        ? "组合延续上行，优先执行已通过计划并跟踪加仓节奏。"
+        : marketSnapshot.className === "trend-down"
+          ? "组合出现回撤，优先关注减仓/止损动作是否落地。"
+          : "组合震荡持平，重点看执行质量和风险拦截明细。";
+
+    return {
+      headline,
+      points: [
+        `业务结果：净值 ${metricView.equity}，日收益 ${formatPercent(metricView.dailyReturn)}。`,
+        `执行进展：通过计划 ${acceptedPlans}/${dataState.plans.length}，成交 ${completedFills}/${dataState.fills.length}。`,
+        `风险状态：模式 ${metricView.riskMode}，最大回撤 ${formatPercent(metricView.maxDrawdown)}。`,
+      ],
+    };
+  }, [
+    acceptedPlans,
+    completedFills,
+    dataState.fills.length,
+    dataState.plans.length,
+    marketSnapshot.className,
+    metricView.dailyReturn,
+    metricView.equity,
+    metricView.maxDrawdown,
+    metricView.riskMode,
+  ]);
+
+  const overviewInsightItems: InsightItem[] = [
+    {
+      label: "今日信号",
+      value: `${marketSnapshot.symbol} ${marketSnapshot.label}`,
+      toneClassName: toneClassFromTrend(marketSnapshot.className),
+    },
+    {
+      label: "执行完成率",
+      value: formatRatio(completedFills, dataState.fills.length),
+    },
+    {
+      label: "风险模式",
+      value: metricView.riskMode,
+    },
+    {
+      label: "阶段覆盖",
+      value: `${stageCoverage}/7`,
+    },
+  ];
+
+  const calendarMonthItems: SummaryGridItem[] = [
+    {
+      label: "交易日",
+      value: String(calendarMonthRows.length),
+    },
+    {
+      label: "上涨日",
+      value: String(calendarMonthSummary.upDays),
+      toneClassName: calendarMonthSummary.upDays > 0 ? "summary-up" : undefined,
+    },
+    {
+      label: "下跌日",
+      value: String(calendarMonthSummary.downDays),
+      toneClassName: calendarMonthSummary.downDays > 0 ? "summary-down" : undefined,
+    },
+    {
+      label: "持平日",
+      value: String(calendarMonthSummary.flatDays),
+    },
+  ];
+
+  const positionInsights: InsightItem[] = [
+    {
+      label: "总仓位",
+      value: formatPercent(totalPositionWeight),
+    },
+    {
+      label: "最大权重",
+      value: topPosition ? `${topPosition.symbol || "--"} ${formatPercent(topPosition.weight)}` : "--",
+      toneClassName: topPosition && toNumber(topPosition.weight) > 0 ? "summary-up" : undefined,
+    },
+    {
+      label: "盈亏分布",
+      value: `${positionBreakdown.profitCount}/${positionBreakdown.lossCount}/${positionBreakdown.flatCount}`,
+    },
+    {
+      label: "当日信号",
+      value: `${marketSnapshot.symbol} ${marketSnapshot.label}`,
+      toneClassName: toneClassFromTrend(marketSnapshot.className),
+    },
+  ];
+
+  const planInsights: InsightItem[] = [
+    {
+      label: "计划通过率",
+      value: formatRatio(acceptedPlans, dataState.plans.length),
+      toneClassName: acceptedPlans > 0 ? "summary-up" : undefined,
+    },
+    {
+      label: "买入 / 减仓",
+      value: `${planBreakdown.addCount} / ${planBreakdown.reduceCount}`,
+    },
+    {
+      label: "阻断条数",
+      value: String(planBlockedCount),
+      toneClassName: planBlockedCount > 0 ? "summary-down" : undefined,
+    },
+    {
+      label: "风险模式",
+      value: metricView.riskMode,
+    },
+  ];
+
+  const fillInsights: InsightItem[] = [
+    {
+      label: "成交完成率",
+      value: formatRatio(completedFills, dataState.fills.length),
+      toneClassName: completedFills > 0 ? "summary-up" : undefined,
+    },
+    {
+      label: "平均偏离(bp)",
+      value: formatBasisPoints(avgFillDeviationBps),
+    },
+    {
+      label: "总费用",
+      value: formatCurrency(totalFillFee),
+    },
+    {
+      label: "失败条数",
+      value: String(fillBreakdown.rejectedCount),
+      toneClassName: fillBreakdown.rejectedCount > 0 ? "summary-down" : undefined,
+    },
+  ];
+
+  const reportInsights: InsightItem[] = [
+    {
+      label: "风险模式",
+      value: reportMetrics?.risk_mode || "--",
+    },
+    {
+      label: "最大回撤",
+      value: formatPercent(metricView.maxDrawdown),
+    },
+    {
+      label: "成交 / 通过",
+      value: `${metricView.filledOrderCount ?? "--"} / ${metricView.acceptedOrderCount ?? "--"}`,
+    },
+    {
+      label: "阶段注记",
+      value: `${stageCoverage}/7`,
     },
   ];
 
@@ -834,9 +1041,11 @@ export default function App() {
             <p className="helper-text">{serviceState.hint}</p>
           </CardSection>
 
-          <CardSection
+          <CollapsibleSection
             eyebrow="任务"
             title="触发单日运行"
+            summaryText="技术参数，默认收起"
+            defaultOpen={false}
           >
             <form className="stack-form" onSubmit={(event) => void handleRunDaily(event)}>
               <label className="field">
@@ -889,9 +1098,14 @@ export default function App() {
                 {isRunning ? "运行中…" : "运行样例任务"}
               </button>
             </form>
-          </CardSection>
+          </CollapsibleSection>
 
-          <CardSection eyebrow="时间轴" title="切换交易日">
+          <CollapsibleSection
+            eyebrow="时间轴"
+            title="切换交易日"
+            summaryText={`当前 ${dataState.selectedDate || "--"}`}
+            defaultOpen={false}
+          >
             <label className="field">
               <span>查看日期</span>
               <input
@@ -918,7 +1132,7 @@ export default function App() {
                 回到最新
               </button>
             </div>
-          </CardSection>
+          </CollapsibleSection>
         </aside>
 
         <main className="workspace">
@@ -999,7 +1213,20 @@ export default function App() {
             {activeTab === "overview" ? (
               <div className="overview-layout">
                 <div className="overview-main">
-                  <SummaryBar items={marketSummaryItems} />
+                  <CardSection
+                    eyebrow="今日结论"
+                    title="先看结论"
+                    chip={<span className={cx("trend-chip", marketSnapshot.className)}>{marketSnapshot.symbol} {marketSnapshot.label}</span>}
+                    className="conclusion-card"
+                  >
+                    <p className="conclusion-headline">{overviewConclusion.headline}</p>
+                    <InsightList items={overviewInsightItems} className="insight-grid-compact" />
+                    <ul className="conclusion-points">
+                      {overviewConclusion.points.map((point, index) => (
+                        <li key={index}>{point}</li>
+                      ))}
+                    </ul>
+                  </CardSection>
 
                   <div className="overview-top-grid">
                     <CardSection
@@ -1013,32 +1240,21 @@ export default function App() {
 
                     <CardSection
                       eyebrow="时间"
-                      title="月历速览"
-                      chip={<span className="subtle-chip">{formatMonthLabel(calendarMonth)}</span>}
+                      title="轻量交易日导航"
+                      chip={<span className="subtle-chip">{metricView.tradeDate}</span>}
                       className="calendar-card"
                     >
-                      <CalendarPanel
-                        month={calendarMonth}
+                      <QuickDateNavigator
+                        rows={recentNavRows}
                         selectedDate={dataState.selectedDate}
-                        rows={sortedNavRows}
+                        prevDate={prevTradeDate}
+                        nextDate={nextTradeDate}
                         onSelectDate={(date) => void handleSelectTradeDate(date)}
-                        onPrevMonth={() => setCalendarMonth((current) => shiftMonthValue(current, -1))}
-                        onNextMonth={() => setCalendarMonth((current) => shiftMonthValue(current, 1))}
-                        onCurrentMonth={() => setCalendarMonth(toMonthValue(dataState.selectedDate || INITIAL_TRADE_DATE))}
+                        onShiftDate={(offset) => void handleShiftTradeDate(offset)}
                         disabled={isRefreshing}
                       />
                     </CardSection>
                   </div>
-
-                  <details className="pipeline-panel card">
-                    <summary>
-                      <span>七段流水线</span>
-                      <span className="subtle-chip">{stageCoverage}/7</span>
-                    </summary>
-                    <div className="pipeline-body">
-                      <PipelineTimeline markdown={reportMarkdown} />
-                    </div>
-                  </details>
                 </div>
 
                 <div className="overview-side">
@@ -1065,7 +1281,7 @@ export default function App() {
               <div className="calendar-layout">
                 <CardSection
                   eyebrow="时间"
-                  title="日历模式"
+                  title="日历复盘"
                   chip={<span className="subtle-chip">{formatMonthLabel(calendarMonth)}</span>}
                   className="calendar-shell"
                 >
@@ -1088,40 +1304,22 @@ export default function App() {
                     chip={<span className={cx("trend-chip", marketSnapshot.className)}>{marketSnapshot.symbol} {marketSnapshot.label}</span>}
                   >
                     <SummaryGrid items={marketSummaryItems} />
-                  </CardSection>
-
-                  <CardSection eyebrow="概览" title="当日概览">
-                    <SummaryBar items={portfolioSummaryItems} className="summary-bar-tight" />
-                    <SummaryBar items={reportQuickItems} className="summary-bar-tight" />
+                    <InsightList items={reportInsights} />
                     <div className="report-preview compact">
                       <p className="report-preview-text">{reportExcerpt}</p>
                     </div>
                   </CardSection>
 
-                  <CardSection eyebrow="本月" title="月度分布">
-                    <SummaryBar
-                      items={[
-                        {
-                          label: "交易日",
-                          value: String(calendarMonthRows.length),
-                        },
-                        {
-                          label: "上涨日",
-                          value: String(calendarMonthSummary.upDays),
-                          toneClassName: calendarMonthSummary.upDays > 0 ? "summary-up" : undefined,
-                        },
-                        {
-                          label: "下跌日",
-                          value: String(calendarMonthSummary.downDays),
-                          toneClassName: calendarMonthSummary.downDays > 0 ? "summary-down" : undefined,
-                        },
-                        {
-                          label: "持平日",
-                          value: String(calendarMonthSummary.flatDays),
-                        },
-                      ]}
-                      className="summary-bar-tight"
-                    />
+                  <CardSection
+                    eyebrow="复盘"
+                    title="七段流水线注记"
+                    chip={<span className="subtle-chip">{stageCoverage}/7</span>}
+                  >
+                    <PipelineTimeline markdown={reportMarkdown} />
+                  </CardSection>
+
+                  <CardSection eyebrow="本月" title="月度分布与切日">
+                    <SummaryGrid items={calendarMonthItems} />
                     <div className="button-row">
                       <button
                         type="button"
@@ -1147,7 +1345,9 @@ export default function App() {
 
             {activeTab === "positions" ? (
               <div className="detail-stack">
-                <SummaryBar items={portfolioSummaryItems} />
+                <CardSection eyebrow="洞察" title="持仓优先信息">
+                  <InsightList items={positionInsights} />
+                </CardSection>
                 <div className="detail-layout detail-layout-split">
                   <CardSection eyebrow="仓位" title="权重分布" className="detail-side-card scroll-card">
                     <AllocationList rows={positions} />
@@ -1172,7 +1372,9 @@ export default function App() {
 
             {activeTab === "plans" ? (
               <div className="detail-stack">
-                <SummaryBar items={planSummaryItems} />
+                <CardSection eyebrow="洞察" title="计划执行信号">
+                  <InsightList items={planInsights} />
+                </CardSection>
                 <CardSection eyebrow="计划" title="交易计划" className="scroll-card">
                   <DataTable
                     rows={dataState.plans}
@@ -1186,7 +1388,9 @@ export default function App() {
 
             {activeTab === "fills" ? (
               <div className="detail-stack">
-                <SummaryBar items={fillSummaryItems} />
+                <CardSection eyebrow="洞察" title="成交执行质量">
+                  <InsightList items={fillInsights} />
+                </CardSection>
                 <CardSection eyebrow="执行" title="模拟成交" className="scroll-card">
                   <DataTable
                     rows={dataState.fills}
@@ -1200,13 +1404,15 @@ export default function App() {
 
             {activeTab === "report" ? (
               <div className="detail-stack">
-                <SummaryBar items={reportSummaryItems} />
+                <CardSection eyebrow="洞察" title="报告阅读顺序">
+                  <InsightList items={reportInsights} />
+                  <div className="report-preview compact">
+                    <p className="report-preview-text">{reportExcerpt}</p>
+                  </div>
+                </CardSection>
                 <div className="detail-layout detail-layout-split">
-                  <CardSection eyebrow="报告" title="当日概览" className="detail-side-card">
-                    <SummaryGrid items={reportQuickItems} />
-                    <div className="report-preview compact">
-                      <p className="report-preview-text">{reportExcerpt}</p>
-                    </div>
+                  <CardSection eyebrow="复盘" title="阶段注记" className="detail-side-card scroll-card">
+                    <PipelineTimeline markdown={reportMarkdown} />
                   </CardSection>
 
                   <CardSection
@@ -1253,6 +1459,45 @@ function CardSection({ eyebrow, title, chip = null, className = "", children }: 
   );
 }
 
+function CollapsibleSection({
+  eyebrow,
+  title,
+  chip = null,
+  summaryText,
+  className = "",
+  defaultOpen = false,
+  children,
+}: CollapsibleSectionProps) {
+  return (
+    <details className={cx("card", "panel-card", "collapsible-card", className)} open={defaultOpen}>
+      <summary>
+        <div>
+          {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
+          <h2>{title}</h2>
+        </div>
+        <div className="collapsible-meta">
+          {summaryText ? <span className="subtle-chip">{summaryText}</span> : null}
+          {chip}
+        </div>
+      </summary>
+      <div className="collapsible-content">{children}</div>
+    </details>
+  );
+}
+
+function InsightList({ items, className = "" }: InsightListProps) {
+  return (
+    <div className={cx("insight-grid", className)}>
+      {items.map((item, index) => (
+        <article key={`${item.label}-${index}`} className="insight-item">
+          <span className="insight-label">{item.label}</span>
+          <strong className={cx("insight-value", item.toneClassName)}>{item.value}</strong>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 function MetricCard({ label, value, footnote, className = "" }: MetricCardProps) {
   return (
     <article className={cx("metric-card", "card", className)}>
@@ -1286,6 +1531,55 @@ function SummaryBar({ items, className = "" }: SummaryBarProps) {
           <strong className={cx("summary-pill-value", item.toneClassName)}>{item.value}</strong>
         </article>
       ))}
+    </div>
+  );
+}
+
+function QuickDateNavigator({
+  rows,
+  selectedDate,
+  prevDate,
+  nextDate,
+  disabled = false,
+  onSelectDate,
+  onShiftDate,
+}: QuickDateNavigatorProps) {
+  if (!rows.length) {
+    return <div className="empty-block">暂无可导航的交易日</div>;
+  }
+
+  return (
+    <div className="quick-date-nav">
+      <div className="quick-date-toolbar">
+        <button type="button" className="button button-secondary button-small" disabled={!prevDate || disabled} onClick={() => onShiftDate(-1)}>
+          上一日
+        </button>
+        <span className="quick-date-selected">{selectedDate || "--"}</span>
+        <button type="button" className="button button-ghost button-small" disabled={!nextDate || disabled} onClick={() => onShiftDate(1)}>
+          下一日
+        </button>
+      </div>
+      <div className="quick-date-list">
+        {rows.map((row, index) => {
+          const tradeDate = String(row.trade_date || "");
+          const trend = marketTrendMeta(row.daily_return);
+          return (
+            <button
+              key={`${tradeDate}-${index}`}
+              type="button"
+              className={cx("quick-date-item", tradeDate === selectedDate && "is-selected")}
+              onClick={() => onSelectDate(tradeDate)}
+              disabled={disabled}
+            >
+              <span className="mono">{tradeDate || "--"}</span>
+              <span className={cx("quick-date-delta", trend.deltaClassName)}>
+                {trend.symbol} {formatPercent(row.daily_return)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="helper-text">总览仅保留轻量时间导航；完整复盘请切到「日历复盘」。</p>
     </div>
   );
 }
@@ -1870,6 +2164,23 @@ function metricToneClass(value: NumberLike): string {
     return "metric-card-down";
   }
   return "";
+}
+
+function toneClassFromTrend(trendClassName: string): string {
+  if (trendClassName === "trend-up") {
+    return "summary-up";
+  }
+  if (trendClassName === "trend-down") {
+    return "summary-down";
+  }
+  return "";
+}
+
+function formatRatio(numerator: number, denominator: number): string {
+  if (!denominator) {
+    return "--";
+  }
+  return `${numerator}/${denominator} (${formatPercent(numerator / denominator)})`;
 }
 
 function marketTrendMeta(value: NumberLike): {

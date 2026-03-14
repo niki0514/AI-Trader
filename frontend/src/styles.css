@@ -125,6 +125,40 @@ p {
   padding: 16px;
 }
 
+.collapsible-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.collapsible-card summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.collapsible-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible-card[open] summary {
+  border-bottom: 1px solid rgba(140, 163, 194, 0.12);
+}
+
+.collapsible-meta {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.collapsible-content {
+  padding: 14px 16px 16px;
+}
+
 .brand-card {
   display: grid;
   grid-template-columns: 64px minmax(0, 1fr);
@@ -553,6 +587,58 @@ h2 {
   font-size: 0.82rem;
 }
 
+.conclusion-card {
+  border-color: rgba(99, 179, 255, 0.26);
+  background:
+    linear-gradient(135deg, rgba(99, 179, 255, 0.08), rgba(140, 107, 255, 0.08)),
+    var(--panel);
+}
+
+.conclusion-headline {
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.conclusion-points {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.conclusion-points li + li {
+  margin-top: 6px;
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.insight-grid-compact {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.insight-item {
+  padding: 10px 12px;
+  border: 1px solid rgba(140, 163, 194, 0.12);
+  border-radius: 14px;
+  background: var(--panel-soft);
+}
+
+.insight-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.insight-value {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.96rem;
+}
+
 .summary-up {
   color: var(--market-up);
 }
@@ -597,6 +683,62 @@ h2 {
 
 .calendar-card {
   min-height: 360px;
+}
+
+.quick-date-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quick-date-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.quick-date-selected {
+  font-weight: 700;
+}
+
+.quick-date-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quick-date-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(140, 163, 194, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+.quick-date-item:hover:not(:disabled) {
+  border-color: rgba(99, 179, 255, 0.42);
+  transform: translateY(-1px);
+}
+
+.quick-date-item:disabled {
+  opacity: 0.58;
+  cursor: default;
+}
+
+.quick-date-item.is-selected {
+  border-color: rgba(99, 179, 255, 0.54);
+  background: rgba(99, 179, 255, 0.12);
+}
+
+.quick-date-delta {
+  font-size: 0.86rem;
 }
 
 .chart-area {
@@ -1291,8 +1433,14 @@ tbody tr.table-row-neutral {
   }
 
   .button-row,
-  .tabs-shell {
+  .tabs-shell,
+  .quick-date-toolbar {
     flex-direction: column;
+  }
+
+  .quick-date-selected {
+    width: 100%;
+    text-align: center;
   }
 
   .tab-button {
