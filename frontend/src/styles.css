@@ -596,18 +596,39 @@ h2 {
 
 .conclusion-headline {
   margin-bottom: 12px;
-  line-height: 1.6;
+  line-height: 1.65;
+  font-size: 1.02rem;
+  font-weight: 600;
 }
 
-.conclusion-points {
-  margin: 10px 0 0;
-  padding-left: 20px;
-  color: var(--muted);
-  line-height: 1.5;
+.decision-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
 }
 
-.conclusion-points li + li {
+.decision-list-compact {
+  margin-top: 8px;
+}
+
+.decision-item {
+  padding: 10px 12px;
+  border: 1px solid rgba(140, 163, 194, 0.12);
+  border-radius: 14px;
+  background: var(--panel-soft);
+}
+
+.decision-label {
+  color: var(--accent);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+}
+
+.decision-detail {
   margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .insight-grid {
@@ -757,12 +778,23 @@ h2 {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.report-preview-label {
+  color: var(--accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
 .report-preview-text {
   line-height: 1.65;
 }
 
 .report-preview.compact {
   margin-top: 0;
+}
+
+.evidence-preview {
+  margin-top: 12px;
 }
 
 .pipeline-panel {
