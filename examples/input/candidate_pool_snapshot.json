@@ -1,0 +1,141 @@
+{
+  "trade_date": "2026-03-10",
+  "market": {
+    "regime": "NEUTRAL"
+  },
+  "account": {
+    "cash": 180000,
+    "total_equity": 420000,
+    "prev_total_equity": 418500,
+    "initial_equity": 400000,
+    "portfolio_drawdown_pct": 0.032
+  },
+  "positions": [
+    {
+      "symbol": "600036.SH",
+      "name": "招商银行",
+      "sector": "Financials",
+      "quantity": 1200,
+      "avg_cost": 35.1,
+      "prev_close": 35.2,
+      "last_price": 35.8,
+      "turnover_rate": 0.016,
+      "relative_volume": 1.05,
+      "amount": 2700000000,
+      "list_days": 8200,
+      "suspended": false,
+      "last_trade_date": "2026-03-07",
+      "exchange": "SSE",
+      "board": "MAIN",
+      "is_st": false,
+      "upper_limit": 38.72,
+      "lower_limit": 31.68,
+      "available_quantity": 1200
+    }
+  ],
+  "watchlist": [
+    {
+      "symbol": "002371.SZ",
+      "name": "北方华创",
+      "sector": "Semis",
+      "prev_close": 421.0,
+      "last_price": 428.0,
+      "momentum_score": 0.80,
+      "breakout_score": 0.77,
+      "liquidity_score": 0.84,
+      "turnover_rate": 0.038,
+      "relative_volume": 1.45,
+      "amount": 4200000000,
+      "list_days": 3200,
+      "suspended": false,
+      "exchange": "SZSE",
+      "board": "MAIN",
+      "is_st": false,
+      "upper_limit": 463.1,
+      "lower_limit": 378.9
+    },
+    {
+      "symbol": "300308.SZ",
+      "name": "中际旭创",
+      "sector": "Optics",
+      "prev_close": 155.0,
+      "last_price": 158.4,
+      "momentum_score": 0.78,
+      "breakout_score": 0.74,
+      "liquidity_score": 0.83,
+      "turnover_rate": 0.056,
+      "relative_volume": 1.72,
+      "amount": 6800000000,
+      "list_days": 2500,
+      "suspended": false,
+      "exchange": "SZSE",
+      "board": "CHINEXT",
+      "is_st": false,
+      "upper_limit": 186.0,
+      "lower_limit": 124.0
+    },
+    {
+      "symbol": "601899.SH",
+      "name": "紫金矿业",
+      "sector": "Metals",
+      "prev_close": 17.95,
+      "last_price": 18.42,
+      "momentum_score": 0.82,
+      "breakout_score": 0.79,
+      "liquidity_score": 0.86,
+      "turnover_rate": 0.041,
+      "relative_volume": 1.68,
+      "amount": 8600000000,
+      "list_days": 6000,
+      "suspended": false,
+      "exchange": "SSE",
+      "board": "MAIN",
+      "is_st": false,
+      "upper_limit": 19.74,
+      "lower_limit": 16.16
+    }
+  ],
+  "recent_events": [
+    {
+      "symbol": "002371.SZ",
+      "event_score": 0.79,
+      "sentiment": "positive",
+      "headline": "半导体设备招标延续，国产替代订单保持景气"
+    },
+    {
+      "symbol": "300308.SZ",
+      "event_score": 0.75,
+      "sentiment": "positive",
+      "headline": "光模块需求维持高景气，算力链订单预期上修"
+    },
+    {
+      "symbol": "601899.SH",
+      "event_score": 0.76,
+      "sentiment": "positive",
+      "headline": "金铜价格维持高位，矿山产量兑现预期"
+    }
+  ],
+  "fundamentals": [
+    {
+      "symbol": "002371.SZ",
+      "revenue_growth": 0.28,
+      "profit_growth": 0.33,
+      "roe": 0.18,
+      "debt_ratio": 0.42
+    },
+    {
+      "symbol": "300308.SZ",
+      "revenue_growth": 0.31,
+      "profit_growth": 0.36,
+      "roe": 0.20,
+      "debt_ratio": 0.27
+    },
+    {
+      "symbol": "601899.SH",
+      "revenue_growth": 0.17,
+      "profit_growth": 0.22,
+      "roe": 0.16,
+      "debt_ratio": 0.39
+    }
+  ]
+}

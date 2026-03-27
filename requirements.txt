@@ -1,0 +1,4 @@
+cryptography>=42,<46
+PyYAML>=6,<7
+PyMySQL>=1.1,<2
+SQLAlchemy>=2.0,<3

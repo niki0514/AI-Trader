@@ -1,0 +1,17 @@
+extends: pipeline.base.yaml
+
+pipeline:
+  name: ai_trader_backend_mvp
+
+market_data:
+  wind:
+    enabled: true
+    strict: true
+
+selection:
+  source: stock_screen
+  stock_screen:
+    keyword: 成交额前100的股票
+    market: A股
+    page_size: 100
+    fetch_all: false

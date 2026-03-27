@@ -1,0 +1,17 @@
+extends: pipeline.base.yaml
+
+pipeline:
+  name: ai_trader_candidate_pool
+
+market_data:
+  wind:
+    enabled: false
+    strict: false
+
+news_search:
+  enabled: false
+
+selection:
+  source: candidate_pool
+  top_n: 0
+  rule_filter: minimal
