@@ -9,7 +9,15 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from app.adapters import read_csv, read_json, write_json
-from app.api.requests import NewsSearchQueryRequest, RunDailyJobRequest, StockScreenQueryRequest
+from app.api.operations import (
+    append_operation_entry,
+    build_effective_position,
+    build_submitted_operation,
+    load_operation_entries,
+    operation_ledger_path,
+    validate_operation_entry,
+)
+from app.api.requests import NewsSearchQueryRequest, OperationEntryRequest, RunDailyJobRequest, StockScreenQueryRequest
 from app.api.responses import (
     ApiResponseModel,
     DailyReportResponse,
@@ -18,12 +26,16 @@ from app.api.responses import (
     HealthResponse,
     NavRangeResponse,
     NewsSearchQueryResponse,
+    OperationSubmitResponse,
+    OperationValidationResponse,
     PipelineCatalogResponse,
     PlansByDateResponse,
+    PositionDetailResponse,
     PositionsLatestResponse,
     RunDailyJobResponse,
     StockScreenQueryResponse,
 )
+from app.a_share import normalize_symbol
 from app.config import load_pipeline_config
 from app.news_search import (
     NewsSearchError,
@@ -40,6 +52,7 @@ from app.stock_screen import (
     load_stock_screen_settings,
     run_stock_screen_query,
 )
+from app.utils import make_order_id
 
 import re
 
@@ -59,12 +72,12 @@ class TraderApiService:
     def __init__(
         self,
         *,
-        backend_dir: Path,
+        project_root: Path,
         output_root: Path,
         default_config_path: Path,
         default_input_path: Path,
     ) -> None:
-        self.backend_dir = backend_dir
+        self.project_root = project_root
         self.output_root = output_root
         self.default_config_path = default_config_path
         self.default_input_path = default_input_path
@@ -75,7 +88,7 @@ class TraderApiService:
     def run_daily_job(self, body: dict[str, Any]) -> tuple[int, ApiResponseModel]:
         request = RunDailyJobRequest.from_body(
             body,
-            backend_dir=self.backend_dir,
+            project_root=self.project_root,
             default_config_path=self.default_config_path,
             default_input_path=self.default_input_path,
             default_output_root=self.output_root,
@@ -194,6 +207,41 @@ class TraderApiService:
             positions=[dict(row) for row in rows],
         )
 
+    def get_position_detail(self, *, symbol: str, trade_date: str = "") -> tuple[int, ApiResponseModel]:
+        normalized_symbol = normalize_symbol(symbol)
+        if not normalized_symbol:
+            return 400, ErrorResponse(error="symbol is required")
+        if trade_date and not _is_trade_date(trade_date):
+            return 400, ErrorResponse(error=f"invalid trade_date: {trade_date}")
+
+        refs = self._discover_daily_runs()
+        ref = self._latest_ref_for_date(refs, trade_date) if trade_date else self._latest_ref(refs)
+        if ref is None:
+            return 404, ErrorResponse(error="no matching daily outputs found")
+
+        positions = read_csv(ref.output_dir / "positions_t.csv")
+        position = self._find_row_by_symbol(positions, normalized_symbol)
+        if position is None:
+            return 404, ErrorResponse(error=f"no position found for symbol={normalized_symbol}")
+
+        holding_actions = self._filter_rows_by_symbol(read_csv(ref.output_dir / "holding_actions_t.csv"), normalized_symbol)
+        plans = self._filter_rows_by_symbol(read_csv(ref.output_dir / "trade_plan_t.csv"), normalized_symbol)
+        fills = self._filter_rows_by_symbol(read_csv(ref.output_dir / "sim_fill_t.csv"), normalized_symbol)
+        return 200, PositionDetailResponse(
+            trade_date=ref.trade_date,
+            run_id=ref.run_id,
+            source=ref.source,
+            output_dir=str(ref.output_dir),
+            symbol=normalized_symbol,
+            position=dict(position),
+            holding_action_count=len(holding_actions),
+            holding_actions=holding_actions,
+            plan_count=len(plans),
+            plans=plans,
+            fill_count=len(fills),
+            fills=fills,
+        )
+
     def get_pipeline_catalog(self) -> tuple[int, ApiResponseModel]:
         return 200, PipelineCatalogResponse.from_payload(build_pipeline_catalog())
 
@@ -288,9 +336,79 @@ class TraderApiService:
             risk_report_markdown=report_text,
         )
 
+    def validate_operation(self, body: dict[str, Any]) -> tuple[int, ApiResponseModel]:
+        request = OperationEntryRequest.from_body(
+            body,
+            default_config_path=self.default_config_path,
+            default_output_root=self.output_root,
+        )
+        config = load_pipeline_config(request.config_path)
+        validation, ref = self._build_operation_validation(request, config=config)
+        return 200, self._to_operation_validation_response(validation, ref)
+
+    def submit_operation(self, body: dict[str, Any]) -> tuple[int, ApiResponseModel]:
+        request = OperationEntryRequest.from_body(
+            body,
+            default_config_path=self.default_config_path,
+            default_output_root=self.output_root,
+        )
+        config = load_pipeline_config(request.config_path)
+        validation, ref = self._build_operation_validation(request, config=config)
+        if not validation.valid:
+            return 400, self._to_operation_validation_response(validation, ref)
+
+        ledger_path = operation_ledger_path(request.output_root, request.trade_date)
+        existing_entries = load_operation_entries(ledger_path)
+        sequence = len(existing_entries) + 1
+        submitted_at = datetime.now().astimezone().isoformat(timespec="seconds")
+        operation = build_submitted_operation(
+            result=validation,
+            request=request,
+            sequence=sequence,
+            submitted_at=submitted_at,
+        )
+        append_operation_entry(ledger_path, trade_date=request.trade_date, entry=operation)
+        return 201, OperationSubmitResponse(
+            status="submitted",
+            operation_id=str(operation.get("operation_id") or make_order_id(request.trade_date, validation.symbol, validation.normalized_action, sequence)),
+            submitted_at=submitted_at,
+            ledger_path=str(ledger_path),
+            operation=operation,
+        )
+
     # -----------------------------
     # Internal helpers
     # -----------------------------
+    def _build_operation_validation(
+        self,
+        request: OperationEntryRequest,
+        *,
+        config: dict[str, Any],
+    ) -> tuple[Any, DailyRunRef | None]:
+        normalized_symbol = normalize_symbol(request.symbol)
+        refs = self._discover_daily_runs()
+        ref = self._latest_ref_on_or_before(refs, request.trade_date)
+        base_position = None
+        if ref is not None:
+            base_position = self._find_row_by_symbol(read_csv(ref.output_dir / "positions_t.csv"), normalized_symbol)
+
+        ledger_path = operation_ledger_path(request.output_root, request.trade_date)
+        existing_entries = load_operation_entries(ledger_path)
+        effective_position = build_effective_position(
+            base_position=base_position,
+            symbol=normalized_symbol,
+            trade_date=request.trade_date,
+            entries=existing_entries,
+        )
+        validation = validate_operation_entry(
+            request,
+            config=config,
+            position=effective_position,
+        )
+        if ref is not None and ref.trade_date < request.trade_date:
+            validation.warnings.append(f"using latest available position snapshot from {ref.trade_date}")
+        return validation, ref
+
     def _discover_daily_runs(self) -> list[DailyRunRef]:
         refs: list[DailyRunRef] = []
         output_root = self.output_root
@@ -372,6 +490,54 @@ class TraderApiService:
             return None
         return max(candidates, key=lambda item: item.updated_at)
 
+    @staticmethod
+    def _latest_ref_on_or_before(refs: list[DailyRunRef], trade_date: str) -> DailyRunRef | None:
+        candidates = [item for item in refs if item.trade_date <= trade_date]
+        if not candidates:
+            return None
+        return max(candidates, key=lambda item: (item.trade_date, item.updated_at))
+
+    @staticmethod
+    def _find_row_by_symbol(rows: list[dict[str, Any]], symbol: str) -> dict[str, Any] | None:
+        normalized_symbol = normalize_symbol(symbol)
+        for row in rows:
+            if normalize_symbol(row.get("symbol")) == normalized_symbol:
+                return dict(row)
+        return None
+
+    @staticmethod
+    def _filter_rows_by_symbol(rows: list[dict[str, Any]], symbol: str) -> list[dict[str, Any]]:
+        normalized_symbol = normalize_symbol(symbol)
+        return [dict(row) for row in rows if normalize_symbol(row.get("symbol")) == normalized_symbol]
+
+    @staticmethod
+    def _to_operation_validation_response(validation: Any, ref: DailyRunRef | None) -> OperationValidationResponse:
+        return OperationValidationResponse(
+            valid=bool(validation.valid),
+            trade_date=str(validation.trade_date),
+            position_trade_date=ref.trade_date if ref is not None else "",
+            position_run_id=ref.run_id if ref is not None else "",
+            position_source=ref.source if ref is not None else "",
+            position_output_dir=str(ref.output_dir) if ref is not None else "",
+            input_action=str(validation.input_action),
+            normalized_action=str(validation.normalized_action),
+            market_action=str(validation.market_action),
+            symbol=str(validation.symbol),
+            quantity=float(validation.quantity),
+            price=float(validation.price),
+            amount=float(validation.amount),
+            lot_size=int(validation.lot_size),
+            position_found=bool(validation.position_found),
+            position=dict(validation.position) if validation.position else None,
+            estimated_fees={str(key): float(value) for key, value in dict(validation.estimated_fees).items()},
+            before_quantity=float(validation.before_quantity),
+            before_available_quantity=float(validation.before_available_quantity),
+            after_quantity=float(validation.after_quantity),
+            after_available_quantity=float(validation.after_available_quantity),
+            errors=[str(item) for item in validation.errors],
+            warnings=[str(item) for item in validation.warnings],
+        )
+
 def make_handler(service: TraderApiService) -> type[BaseHTTPRequestHandler]:
     class TraderApiHandler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:  # noqa: N802
@@ -385,6 +551,13 @@ def make_handler(service: TraderApiService) -> type[BaseHTTPRequestHandler]:
 
             if path == "/positions/latest":
                 status, payload = service.get_positions_latest()
+                self._send_json(status, payload)
+                return
+
+            if path == "/positions/detail":
+                symbol = _first_query_value(query.get("symbol"), "")
+                trade_date = _first_query_value(query.get("trade_date"), "")
+                status, payload = service.get_position_detail(symbol=symbol, trade_date=trade_date)
                 self._send_json(status, payload)
                 return
 
@@ -435,6 +608,10 @@ def make_handler(service: TraderApiService) -> type[BaseHTTPRequestHandler]:
                     status, payload = service.screen_stocks(body)
                 elif path == "/news-search/query":
                     status, payload = service.search_news(body)
+                elif path == "/operations/validate":
+                    status, payload = service.validate_operation(body)
+                elif path == "/operations/submit":
+                    status, payload = service.submit_operation(body)
                 else:
                     self._send_json(404, ErrorResponse(error=f"unknown path: {path}"))
                     return
@@ -495,13 +672,13 @@ def build_server(
     *,
     host: str,
     port: int,
-    backend_dir: Path,
+    project_root: Path,
     output_root: Path,
     default_config_path: Path,
     default_input_path: Path,
 ) -> ThreadingHTTPServer:
     service = TraderApiService(
-        backend_dir=backend_dir,
+        project_root=project_root,
         output_root=output_root,
         default_config_path=default_config_path,
         default_input_path=default_input_path,

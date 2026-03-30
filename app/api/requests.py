@@ -30,14 +30,14 @@ class RunDailyJobRequest:
         cls,
         body: dict[str, Any],
         *,
-        backend_dir: Path,
+        project_root: Path,
         default_config_path: Path,
         default_input_path: Path,
         default_output_root: Path,
     ) -> RunDailyJobRequest:
         snapshot_input = _resolve_snapshot_input(
             body,
-            backend_dir=backend_dir,
+            project_root=project_root,
             default_input_path=default_input_path,
         )
         trade_date = str(body.get("trade_date") or snapshot_input.snapshot.get("trade_date") or _today()).strip()
@@ -132,17 +132,55 @@ class NewsSearchQueryRequest:
         )
 
 
+@dataclass(frozen=True)
+class OperationEntryRequest:
+    config_path: Path
+    output_root: Path
+    trade_date: str
+    symbol: str
+    action: str
+    quantity: float
+    price: float
+    occurred_at: str
+    note: str
+    operator: str
+    source: str
+
+    @classmethod
+    def from_body(
+        cls,
+        body: dict[str, Any],
+        *,
+        default_config_path: Path,
+        default_output_root: Path,
+    ) -> OperationEntryRequest:
+        output_root = _resolve_path(body.get("output_root"), default_output_root)
+        return cls(
+            config_path=_resolve_path(body.get("config_file"), default_config_path),
+            output_root=output_root,
+            trade_date=_required_string(body.get("trade_date"), field_name="trade_date"),
+            symbol=_required_string(body.get("symbol"), field_name="symbol"),
+            action=_required_string(body.get("action"), field_name="action"),
+            quantity=_parse_positive_float(body.get("quantity"), field_name="quantity"),
+            price=_parse_positive_float(body.get("price"), field_name="price"),
+            occurred_at=_optional_string(body.get("occurred_at")),
+            note=_optional_string(body.get("note")),
+            operator=_optional_string(body.get("operator")),
+            source=_optional_string(body.get("source")) or "manual_entry",
+        )
+
+
 def _resolve_snapshot_input(
     body: dict[str, Any],
     *,
-    backend_dir: Path,
+    project_root: Path,
     default_input_path: Path,
 ) -> SnapshotInput:
     inline_snapshot = body.get("snapshot")
     if inline_snapshot is not None:
         if not isinstance(inline_snapshot, dict):
             raise ValueError("snapshot must be an object")
-        input_path = backend_dir / "inline_snapshot.json"
+        input_path = project_root / "inline_snapshot.json"
         return SnapshotInput(snapshot=dict(inline_snapshot), input_path=input_path, input_label="<inline_snapshot>")
 
     input_path = _resolve_path(body.get("input_file"), default_input_path)
@@ -208,6 +246,23 @@ def _parse_int(value: Any, *, field_name: str) -> int:
         parsed = int(value)
     except (TypeError, ValueError) as exc:
         raise ValueError(f"{field_name} must be an integer") from exc
+    return parsed
+
+
+def _parse_positive_float(value: Any, *, field_name: str) -> float:
+    parsed = _parse_float(value, field_name=field_name)
+    if parsed <= 0:
+        raise ValueError(f"{field_name} must be > 0")
+    return parsed
+
+
+def _parse_float(value: Any, *, field_name: str) -> float:
+    if isinstance(value, bool) or value in {"", None}:
+        raise ValueError(f"{field_name} must be a number")
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{field_name} must be a number") from exc
     return parsed
 
 

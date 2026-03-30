@@ -5,11 +5,11 @@ import sys
 import tempfile
 import unittest
 
-BACKEND_DIR = Path(__file__).resolve().parents[1]
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.api.requests import NewsSearchQueryRequest, RunDailyJobRequest, StockScreenQueryRequest
+from app.api.requests import NewsSearchQueryRequest, OperationEntryRequest, RunDailyJobRequest, StockScreenQueryRequest
 
 
 class RunDailyJobRequestTests(unittest.TestCase):
@@ -24,7 +24,7 @@ class RunDailyJobRequestTests(unittest.TestCase):
                     "pipeline_stages": ["selector", "analyst"],
                     "snapshot": {"watchlist": []},
                 },
-                backend_dir=BACKEND_DIR,
+                project_root=PROJECT_ROOT,
                 default_config_path=root / "pipeline.yaml",
                 default_input_path=root / "input.json",
                 default_output_root=root / "outputs",
@@ -45,7 +45,7 @@ class RunDailyJobRequestTests(unittest.TestCase):
                         "snapshot": {"watchlist": []},
                         "pipeline_stages": "selector,analyst",
                     },
-                    backend_dir=BACKEND_DIR,
+                    project_root=PROJECT_ROOT,
                     default_config_path=root / "pipeline.yaml",
                     default_input_path=root / "input.json",
                     default_output_root=root / "outputs",
@@ -112,6 +112,52 @@ class NewsSearchQueryRequestTests(unittest.TestCase):
         self.assertEqual(request.start_date, "2026-03-01")
         self.assertEqual(request.end_date, "2026-03-16")
         self.assertEqual(request.child_search_type, "announcement")
+
+
+class OperationEntryRequestTests(unittest.TestCase):
+    def test_from_body_parses_manual_operation_fields(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            request = OperationEntryRequest.from_body(
+                {
+                    "trade_date": "2026-03-11",
+                    "symbol": "600519.sh",
+                    "action": "sell",
+                    "quantity": "100",
+                    "price": "1510.5",
+                    "operator": "alice",
+                    "note": "manual trade",
+                },
+                default_config_path=root / "pipeline.yaml",
+                default_output_root=root / "outputs",
+            )
+
+        self.assertEqual(request.trade_date, "2026-03-11")
+        self.assertEqual(request.symbol, "600519.sh")
+        self.assertEqual(request.action, "sell")
+        self.assertEqual(request.quantity, 100.0)
+        self.assertEqual(request.price, 1510.5)
+        self.assertEqual(request.operator, "alice")
+        self.assertEqual(request.note, "manual trade")
+        self.assertEqual(request.source, "manual_entry")
+
+    def test_from_body_rejects_invalid_quantity(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            with self.assertRaises(ValueError) as context:
+                OperationEntryRequest.from_body(
+                    {
+                        "trade_date": "2026-03-11",
+                        "symbol": "600519.SH",
+                        "action": "SELL",
+                        "quantity": 0,
+                        "price": 1510,
+                    },
+                    default_config_path=root / "pipeline.yaml",
+                    default_output_root=root / "outputs",
+                )
+
+        self.assertIn("quantity", str(context.exception))
 
 
 if __name__ == "__main__":

@@ -247,6 +247,22 @@ class PositionsLatestResponse(ApiResponseModel):
 
 
 @dataclass(frozen=True)
+class PositionDetailResponse(ApiResponseModel):
+    trade_date: str
+    run_id: str
+    source: str
+    output_dir: str
+    symbol: str
+    position: dict[str, Any]
+    holding_action_count: int
+    holding_actions: list[dict[str, Any]]
+    plan_count: int
+    plans: list[dict[str, Any]]
+    fill_count: int
+    fills: list[dict[str, Any]]
+
+
+@dataclass(frozen=True)
 class PlansByDateResponse(ApiResponseModel):
     trade_date: str
     run_id: str
@@ -282,6 +298,42 @@ class DailyReportResponse(ApiResponseModel):
     output_dir: str
     metrics: dict[str, Any]
     risk_report_markdown: str
+
+
+@dataclass(frozen=True)
+class OperationValidationResponse(ApiResponseModel):
+    valid: bool
+    trade_date: str
+    position_trade_date: str
+    position_run_id: str
+    position_source: str
+    position_output_dir: str
+    input_action: str
+    normalized_action: str
+    market_action: str
+    symbol: str
+    quantity: float
+    price: float
+    amount: float
+    lot_size: int
+    position_found: bool
+    position: dict[str, Any] | None
+    estimated_fees: dict[str, float]
+    before_quantity: float
+    before_available_quantity: float
+    after_quantity: float
+    after_available_quantity: float
+    errors: list[str]
+    warnings: list[str]
+
+
+@dataclass(frozen=True)
+class OperationSubmitResponse(ApiResponseModel):
+    status: str
+    operation_id: str
+    submitted_at: str
+    ledger_path: str
+    operation: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -356,8 +408,11 @@ __all__ = [
     "NavRangeResponse",
     "NewsPreviewItem",
     "NewsSearchQueryResponse",
+    "OperationSubmitResponse",
+    "OperationValidationResponse",
     "PipelineCatalogResponse",
     "PipelineStageCatalogEntry",
+    "PositionDetailResponse",
     "PlansByDateResponse",
     "PositionsLatestResponse",
     "RunDailyJobResponse",

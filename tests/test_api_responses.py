@@ -4,11 +4,11 @@ from pathlib import Path
 import sys
 import unittest
 
-BACKEND_DIR = Path(__file__).resolve().parents[1]
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.api.responses import NewsSearchQueryResponse, PipelineCatalogResponse, StockScreenQueryResponse
+from app.api.responses import NewsSearchQueryResponse, OperationValidationResponse, PipelineCatalogResponse, StockScreenQueryResponse
 
 
 class ApiResponseModelTests(unittest.TestCase):
@@ -113,6 +113,39 @@ class ApiResponseModelTests(unittest.TestCase):
         self.assertEqual(payload["default_stage_order"], ["selector", "analyst"])
         self.assertEqual(payload["stages"]["selector"]["output_model"], "SelectorStageOutput")
         self.assertEqual(payload["stages"]["selector"]["input_snapshot_keys"], ["snapshot", "trade_date"])
+
+    def test_operation_validation_response_omits_position_when_absent(self) -> None:
+        response = OperationValidationResponse(
+            valid=False,
+            trade_date="2026-03-11",
+            position_trade_date="",
+            position_run_id="",
+            position_source="",
+            position_output_dir="",
+            input_action="SELL",
+            normalized_action="REDUCE",
+            market_action="SELL",
+            symbol="600519.SH",
+            quantity=100.0,
+            price=1510.0,
+            amount=151000.0,
+            lot_size=100,
+            position_found=False,
+            position=None,
+            estimated_fees={"commission": 45.3},
+            before_quantity=0.0,
+            before_available_quantity=0.0,
+            after_quantity=0.0,
+            after_available_quantity=0.0,
+            errors=["no existing position found"],
+            warnings=[],
+        )
+        payload = response.to_dict()
+
+        self.assertFalse(payload["valid"])
+        self.assertNotIn("position", payload)
+        self.assertEqual(payload["estimated_fees"]["commission"], 45.3)
+        self.assertEqual(payload["errors"], ["no existing position found"])
 
 
 if __name__ == "__main__":
