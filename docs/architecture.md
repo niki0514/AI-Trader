@@ -1,6 +1,6 @@
-# AI Trader Backend 架构说明
+# AI Trader 架构说明
 
-本文帮助你快速理解后端的运行方式、模块分层，以及单日/API/回测三种调用模式之间的关系。
+本文帮助你快速理解项目的运行方式、模块分层，以及单日/API/回测三种调用模式之间的关系。
 
 ## 1. 总体架构
 
@@ -235,6 +235,6 @@ API 只负责两件事：
 如果你第一次接触这个仓库，建议按顺序阅读：
 
 1. `README.md`
-2. `BACKEND.md`
-3. `docs/architecture.md`
-4. `docs/api-mvp.md`
+2. `docs/architecture.md`
+3. `docs/api-mvp.md`
+4. `docs/product-roadmap.md`

@@ -1,6 +1,6 @@
-# AI Trader 后端各环节输入输出 Demo
+# AI Trader 各环节输入输出 Demo
 
-本文基于一次真实样例运行整理，方便前后端联调、产品评审、接口说明。
+本文基于一次真实样例运行整理，方便接口联调、产品评审、接口说明。
 
 - 示例输入：`examples/input/daily_snapshot.json`
 - 示例运行：`python3 run_single_day.py --run-id io-demo-20260310`
@@ -8,7 +8,7 @@
 
 ## 1. 总入口输入 Demo
 
-后端单日流水线的统一输入是一个 `snapshot` JSON。
+单日流水线的统一输入是一个 `snapshot` JSON。
 
 最小理解可以抓这几个顶层字段：
 
@@ -352,13 +352,13 @@ trade_date,cash,market_value,total_equity,trading_fees,daily_return,cum_return,m
 
 这份文件最适合做：
 
-- 前后端联调
+- 接口联调
 - 回放问题单
 - 排查“某个订单为什么被拦截/为什么没成交”
 
 ## 10. 一句话串起来
 
-整条后端链路可以理解为：
+整条链路可以理解为：
 
 ```text
 snapshot 输入
