@@ -5,9 +5,9 @@ import json
 from pathlib import Path
 import sys
 
-BACKEND_DIR = Path(__file__).resolve().parent
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.config import load_pipeline_config
 from app.stock_screen import (
@@ -27,8 +27,8 @@ def main() -> None:
     parser.add_argument("--page-size", type=int, default=100)
     parser.add_argument("--fetch-all", default="true", help="Whether to auto-fetch all pages. true/false.")
     parser.add_argument("--request-id", default="")
-    parser.add_argument("--config", default=str(BACKEND_DIR / "app" / "config" / "pipeline.yaml"))
-    parser.add_argument("--output-root", default=str(BACKEND_DIR / "outputs" / "stock_screen"))
+    parser.add_argument("--config", default=str(PROJECT_ROOT / "app" / "config" / "pipeline.yaml"))
+    parser.add_argument("--output-root", default=str(PROJECT_ROOT / "outputs" / "stock_screen"))
     parser.add_argument("--include-rows", action="store_true", help="Print all localized rows in the JSON summary.")
     args = parser.parse_args()
 

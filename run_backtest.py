@@ -7,9 +7,9 @@ from pathlib import Path
 import sys
 from typing import Any
 
-BACKEND_DIR = Path(__file__).resolve().parent
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.adapters import read_json, write_csv, write_json, write_text
 from app.config import load_pipeline_config
@@ -23,10 +23,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run AI Trader backtest.")
     parser.add_argument(
         "--manifest",
-        default=str(BACKEND_DIR / "examples" / "input" / "backtest_manifest.json"),
+        default=str(PROJECT_ROOT / "examples" / "input" / "backtest_manifest.json"),
     )
-    parser.add_argument("--config", default=str(BACKEND_DIR / "app" / "config" / "pipeline.yaml"))
-    parser.add_argument("--output-root", default=str(BACKEND_DIR / "outputs" / "backtests"))
+    parser.add_argument("--config", default=str(PROJECT_ROOT / "app" / "config" / "pipeline.yaml"))
+    parser.add_argument("--output-root", default=str(PROJECT_ROOT / "outputs" / "backtests"))
     parser.add_argument("--run-id", default="")
     parser.add_argument("--pipeline-preset", default="")
     parser.add_argument("--pipeline-stages", default="")

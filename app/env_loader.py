@@ -23,10 +23,7 @@ def load_local_env() -> None:
 
 def _candidate_env_files() -> list[Path]:
     project_root = Path(__file__).resolve().parents[2]
-    return [
-        project_root / ".env",
-        project_root / "backend" / ".env",
-    ]
+    return [project_root / ".env"]
 
 
 def _load_env_file(path: Path) -> None:

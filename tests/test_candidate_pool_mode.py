@@ -8,9 +8,9 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-BACKEND_DIR = Path(__file__).resolve().parents[1]
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.api.server import TraderApiService
 from app.components import analyst, selector
@@ -151,7 +151,7 @@ class InlineSnapshotApiTests(unittest.TestCase):
             config_path.write_text("pipeline:\n  name: inline-test\n", encoding="utf-8")
 
             service = TraderApiService(
-                backend_dir=BACKEND_DIR,
+                project_root=PROJECT_ROOT,
                 output_root=root / "outputs",
                 default_config_path=config_path,
                 default_input_path=root / "missing-input.json",
@@ -210,7 +210,7 @@ class InlineSnapshotApiTests(unittest.TestCase):
             config_path.write_text("pipeline:\n  preset: full\n", encoding="utf-8")
 
             service = TraderApiService(
-                backend_dir=BACKEND_DIR,
+                project_root=PROJECT_ROOT,
                 output_root=root / "outputs",
                 default_config_path=config_path,
                 default_input_path=root / "missing-input.json",
@@ -256,7 +256,7 @@ class InlineSnapshotApiTests(unittest.TestCase):
             config_path.write_text("pipeline:\n  preset: full\n", encoding="utf-8")
 
             service = TraderApiService(
-                backend_dir=BACKEND_DIR,
+                project_root=PROJECT_ROOT,
                 output_root=root / "outputs",
                 default_config_path=config_path,
                 default_input_path=root / "missing-input.json",
@@ -356,10 +356,10 @@ class PipelineCompositionTests(unittest.TestCase):
 
     def test_pipeline_catalog_describes_stage_contracts(self) -> None:
         service = TraderApiService(
-            backend_dir=BACKEND_DIR,
-            output_root=BACKEND_DIR / "outputs",
-            default_config_path=BACKEND_DIR / "app" / "config" / "pipeline.yaml",
-            default_input_path=BACKEND_DIR / "examples" / "input" / "daily_snapshot.json",
+            project_root=PROJECT_ROOT,
+            output_root=PROJECT_ROOT / "outputs",
+            default_config_path=PROJECT_ROOT / "app" / "config" / "pipeline.yaml",
+            default_input_path=PROJECT_ROOT / "examples" / "input" / "daily_snapshot.json",
         )
 
         status, payload = service.get_pipeline_catalog()

@@ -16,7 +16,7 @@ def load_pipeline_config(path: str | Path) -> dict[str, Any]:
     if yaml is None:
         raise RuntimeError(
             "PyYAML is required to load pipeline config files. "
-            "Install backend dependencies with `python3 -m pip install -r requirements.txt`."
+            "Install AI Trader dependencies with `python3 -m pip install -r requirements.txt`."
         ) from YAML_IMPORT_ERROR
     return _load_config_mapping(Path(path).resolve(), stack=())
 

@@ -1,7 +1,7 @@
 extends: pipeline.base.yaml
 
 pipeline:
-  name: ai_trader_backend_mvp
+  name: ai_trader_mvp
 
 market_data:
   wind:

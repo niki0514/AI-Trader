@@ -5,9 +5,9 @@ from datetime import datetime
 from pathlib import Path
 import sys
 
-BACKEND_DIR = Path(__file__).resolve().parent
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.adapters import read_json, write_json
 from app.config import load_pipeline_config
@@ -16,10 +16,10 @@ from app.runner import run_pipeline
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run AI Trader backend v2 for a single day snapshot.")
-    parser.add_argument("--input", default=str(BACKEND_DIR / "examples" / "input" / "daily_snapshot.json"))
-    parser.add_argument("--config", default=str(BACKEND_DIR / "app" / "config" / "pipeline.yaml"))
-    parser.add_argument("--output-root", default=str(BACKEND_DIR / "outputs"))
+    parser = argparse.ArgumentParser(description="Run AI Trader for a single day snapshot.")
+    parser.add_argument("--input", default=str(PROJECT_ROOT / "examples" / "input" / "daily_snapshot.json"))
+    parser.add_argument("--config", default=str(PROJECT_ROOT / "app" / "config" / "pipeline.yaml"))
+    parser.add_argument("--output-root", default=str(PROJECT_ROOT / "outputs"))
     parser.add_argument("--trade-date", default="")
     parser.add_argument("--run-id", default="")
     parser.add_argument("--pipeline-preset", default="")
@@ -60,7 +60,7 @@ def main() -> None:
     result = run_pipeline(ctx, initial_payload)
     write_json(output_dir / "final_payload.json", result)
 
-    print(f"AI Trader backend completed: {run_id}")
+    print(f"AI Trader run completed: {run_id}")
     print(f"Output directory: {output_dir}")
     print(f"Holding actions: {output_dir / 'holding_actions_t.csv'}")
     print(f"Tech candidates: {output_dir / 'tech_candidates_t.csv'}")

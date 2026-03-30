@@ -5,9 +5,9 @@ import json
 from pathlib import Path
 import sys
 
-BACKEND_DIR = Path(__file__).resolve().parent
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.config import load_pipeline_config
 from app.news_search import (
@@ -26,8 +26,8 @@ def main() -> None:
     parser.add_argument("--end-date", default="", help="Optional end date passed to the upstream API.")
     parser.add_argument("--child-search-type", default="", help="Optional upstream childSearchType.")
     parser.add_argument("--request-id", default="")
-    parser.add_argument("--config", default=str(BACKEND_DIR / "app" / "config" / "pipeline.yaml"))
-    parser.add_argument("--output-root", default=str(BACKEND_DIR / "outputs" / "news_search"))
+    parser.add_argument("--config", default=str(PROJECT_ROOT / "app" / "config" / "pipeline.yaml"))
+    parser.add_argument("--output-root", default=str(PROJECT_ROOT / "outputs" / "news_search"))
     parser.add_argument("--include-items", action="store_true", help="Print all normalized items in the JSON summary.")
     args = parser.parse_args()
 
